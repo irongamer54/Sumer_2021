@@ -104,9 +104,9 @@ def admin_chek(i):
         for j in range(len(users)):
             if users[j][0] == user_name:
                 print("pol cysh")
-                return i = j
-    
-    
+                return  j , 1
+    return i , 0
+
             
 def popol(user):
     print("est: {0:0.2f} $".format(float(users[user][2])))
@@ -119,7 +119,7 @@ def popol(user):
         users[i][0], sum)) 
     his.close()
 def name(i):
-    i = admin_chek(i)
+    i, flag = admin_chek(i)
 
     if input("ti yveren? ")== "da":
         user_name=input("vvedite login  bez probel : ")
@@ -134,13 +134,7 @@ def name(i):
             zapol_file()
 
 def porol(i):
-    if users[i][0]=="admin_0w0":
-        user_name = input("vvedite login  bez probel : ")
-        flag=1
-        for j in range(len(users)):
-            if users[j][0] == user_name:
-                print("pol cysh")   
-                i=j  
+    i, flag = admin_chek(i)
     #print(i)
     #print(users[i][1])
     if input("ti yveren? ") == "da":
