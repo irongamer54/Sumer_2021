@@ -97,6 +97,16 @@ def enter():
             print("porol ne vern popitok net")
             return 0
 
+def admin_chek(i):
+    if users[i][0] == "admin_0w0":
+        user_name = input("vvedite login  bez probel : ")
+        flag = 1
+        for j in range(len(users)):
+            if users[j][0] == user_name:
+                print("pol cysh")
+                return i = j
+    
+    
             
 def popol(user):
     print("est: {0:0.2f} $".format(float(users[user][2])))
@@ -109,13 +119,7 @@ def popol(user):
         users[i][0], sum)) 
     his.close()
 def name(i):
-    if users[i][0] == "admin_0w0":
-        user_name = input("vvedite login  bez probel : ")
-        flag = 1
-        for j in range(len(users)):
-            if users[j][0] == user_name:
-                print("pol cysh")
-                i = j
+    i = admin_chek(i)
 
     if input("ti yveren? ")== "da":
         user_name=input("vvedite login  bez probel : ")
