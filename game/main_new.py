@@ -34,11 +34,6 @@ def camera_configure(camera, target_rect):
 
 
 
-
-image = [pygame.image.load('rfvtym.png'),
-         pygame.image.load('rfvtym2.png')]
-
-
 def main():
     pygame.init()
     screen=pygame.display.set_mode(DISPLAY)
