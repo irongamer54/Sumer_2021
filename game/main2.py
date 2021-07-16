@@ -27,15 +27,15 @@ height = 64
 speed = 10
 
 isJump = False
-JumpCount = 10
+JumpCount = 0
 
 left=False
 right=False
 
 animCount=0
 
-smesh_x=0
-smesh_y=0
+smesh_x=-10*32/2
+smesh_y=-1*32/2
 
 walkRight=[
             pygame.image.load('pers1.png'),
@@ -59,6 +59,7 @@ def map_drow():
     global map,map_cord,smesh_x,smesh_y
     y_m=0
     x_m=0
+    map_cord=[]
     for i in range(len(map)):
         x_m=0
         for g in range(len(map[i])):
@@ -77,13 +78,25 @@ def map_drow():
                 
             x_m+=32
         y_m+=32
+def colision_side(x,y):
+    global map_cord,smesh_y,smesh_x
+    print(smesh_y,smesh_x)
+    for i in range(len(map_cord)):
+        if x+32>=map_cord[i][0]and x<=map_cord[i][0]+32: 
+            print(y)
+            if y >=map_cord[i][1]-64 and y-32<=map_cord[i][1]:
+                print(map_cord[i][1])
+                return 1
+    return 0
 
-def colision(x,y,a):
-    global map_cord,smesh_x,smesh_y
+
+def colision(x,y):
+    global map_cord,smesh_y
 
     for i in range(len(map_cord)):
-        if x+32>=map_cord[i][0]+smesh_x and x<=map_cord[i][0]+32+smesh_x: 
-            if y+32 >=map_cord[i][1]+smesh_y and y<=map_cord[i][1]+32+smesh_y:
+        if x+32>=map_cord[i][0]and x<=map_cord[i][0]+32: 
+            if y >=map_cord[i][1]-64 and y-32<=map_cord[i][1]:
+                
                 return 1
     return 0
 
@@ -121,15 +134,18 @@ while run:
             run = False
     
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and colision(x-speed,y,32)==0:
+    if keys[pygame.K_LEFT] and colision(x-speed,y)==0:
         left=True
         right=False
         smesh_x += speed
-    if keys[pygame.K_RIGHT] and colision(x+speed,y,-32)==0:
+    if keys[pygame.K_RIGHT] and colision(x+speed,y)==0:
         left=False
         right=True
         smesh_x -= speed
-    
+    if colision_side(x,y)==0:        
+        smesh_y -= (JumpCount ** 2) / 2
+        
+        JumpCount -= 1
     '''if not isJump:
         if keys[pygame.K_UP] and colision(x,y,0)==0:
             isJump = True
