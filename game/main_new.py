@@ -49,7 +49,7 @@ def main():
     with open("test.json") as jsonFile:
         jsonObject = json.load(jsonFile)
         jsonFile.close()
-    level=jsonObject['map1']
+    level=[jsonObject['map1'],jsonObject['map1_bg']]
 
     timer=pygame.time.Clock()
     
@@ -57,30 +57,75 @@ def main():
     
     
     x=y=0
-    for row in level:
-        for col in row:
-            if col=="-":
-                pf=Platform(x,y,32,32,True,1)
-                entities.add(pf)
-                platforms.append(pf)
-            if col=="+":
-                pf=Platform(x,y,32,32,False,0)
-                entities.add(pf)
-                platforms.append(pf)
-            if col=="e":
-                pf=Platform(x,y,32,32,True,2)
-                entities.add(pf)
-                platforms.append(pf)
-            if col=="r":
-                pf=Platform(x,y,32,17,True,3)
-                entities.add(pf)
-                platforms.append(pf)
-            x+=32
-        y+=32
-        x=0
+    for i in range(len(level)):
+        for row in level[i]:
+            for col in row:
+                #if col==" ":
+                #   pf=Platform(x,y,32,32,False,0)
+                #  entities.add(pf)
+                # platforms.append(pf)
+                if col=="1":
+                    pf=Platform(x,y,32,32,True,1)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="2":
+                    pf=Platform(x,y,32,32,True,2)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="3":
+                    pf=Platform(x,y,32,32,True,3)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="4":
+                    pf=Platform(x,y,32,17,True,4)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="5":
+                    pf=Platform(x,y,32,32,True,5)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="6":
+                    pf=Platform(x,y,32,32,True,6)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="7":
+                    pf=Platform(x,y,32,32,True,7)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="8":
+                    pf=Platform(x,y,32,17,True,8)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="9":
+                    bl=Block(x,y,32,32)
+                    entities.add(bl)
+                    platforms.append(bl)
+                if col=="-":
+                    pf=Platform(x,y,32,32,True,0)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="+":
+                    pf=Platform(x,y,32,32,True,11)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="*":
+                    pf=Platform(x,y,32,32,True,12)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="@":
+                    pf=Platform(x,y,32,17,True,13)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="!":
+                    pf=Platform(x,y,32,32,True,14)
+                    entities.add(pf)
+                    platforms.append(pf)
+                x+=32
+            y+=32
+            x=0
     entities.add(hero)
-    total_level_width  = len(level[0])*32 # Высчитываем фактическую ширину уровня
-    total_level_height = len(level)*32   # высоту
+    total_level_width  = len(level[0][0])*32 # Высчитываем фактическую ширину уровня
+    total_level_height = len(level[0])*32   # высоту
     
     camera = Camera(camera_configure, total_level_width, total_level_height) 
     while 1:
