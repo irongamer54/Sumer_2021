@@ -1,7 +1,6 @@
 from blocks import *
 import json
 from player import *
-import pygame
 
 WIN_WIDTH=800
 WIN_HIGHT=640
