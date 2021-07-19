@@ -1,0 +1,13 @@
+sudo apt install git
+   44  cd
+   45  git cone https://github.com/irongamer54/Sumer_2021.git
+   46  git clone https://github.com/irongamer54/Sumer_2021.git
+   47  cd Sumer_2021/
+   48  git add .
+   49  git commit -m "day9"
+   50  git config --global user.email "you@example.com"
+   51  git config --global user.name "Your Name"
+   52  git commit -m "day9"
+   53  git push
+   54  history
+
