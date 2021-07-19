@@ -1,7 +1,7 @@
+#from bulets import Bulet
 from blocks import *
 import json
 from player import *
-import pygame
 
 WIN_WIDTH=800
 WIN_HIGHT=640
@@ -31,26 +31,27 @@ def camera_configure(camera, target_rect):
     t = min(0, t)                           # Не движемся дальше верхней границы
 
     return Rect(l, t, w, h)      
-
+left_b=right_b=False
 
 
 def main():
+    global left_b,right_b
     pygame.init()
     screen=pygame.display.set_mode(DISPLAY)
     bg=Surface((WIN_WIDTH,WIN_HIGHT))
     bg.fill(Color(BACKGROUND_COLOR))
 
-    hero=Player(100,55)
-    left=right=up=False
+    #hero=Player(100,55)
+    flag=shot=left=right=up=False
 
     entities = pygame.sprite.Group()
     platforms=[]
-
-
+    blocks=[]
+    bulets=[]
     with open("test.json") as jsonFile:
         jsonObject = json.load(jsonFile)
         jsonFile.close()
-    level=jsonObject['map1']
+    level=[jsonObject['map1']]
 
     timer=pygame.time.Clock()
     
@@ -58,30 +59,81 @@ def main():
     
     
     x=y=0
-    for row in level:
-        for col in row:
-            if col=="-":
-                pf=Platform(x,y,32,32,True,1)
-                entities.add(pf)
-                platforms.append(pf)
-            if col=="+":
-                pf=Platform(x,y,32,32,False,0)
-                entities.add(pf)
-                platforms.append(pf)
-            if col=="e":
-                pf=Platform(x,y,32,32,True,2)
-                entities.add(pf)
-                platforms.append(pf)
-            if col=="r":
-                pf=Platform(x,y,32,17,True,3)
-                entities.add(pf)
-                platforms.append(pf)
-            x+=32
-        y+=32
-        x=0
+    for i in range(len(level)):
+        for row in level[i]:
+            for col in row:
+                #if col==" ":
+                #   pf=Platform(x,y,32,32,False,0)
+                #  entities.add(pf)
+                # platforms.append(pf)
+                if col=="p":
+                    hero=Player(x,y)
+                if col=="0":
+                    pf=Platform(x,y,32,32,True,10)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="1":
+                    pf=Platform(x,y,32,32,True,1)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="2":
+                    pf=Platform(x,y,32,32,True,2)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="3":
+                    pf=Platform(x,y,32,32,True,3)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="4":
+                    pf=Platform(x,y,32,17,True,4)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="5":
+                    pf=Platform(x,y,32,32,True,5)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="6":
+                    pf=Platform(x,y,32,32,True,6)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="7":
+                    pf=Platform(x,y,32,32,True,7)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="8":
+                    pf=Platform(x,y,32,17,True,8)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="9":
+                    bl=Block(x,y,32,32)
+                    entities.add(bl)
+                    blocks.append(bl)
+                if col=="-":
+                    pf=Platform(x,y,32,32,True,0)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="+":
+                    pf=Platform(x,y,32,32,True,11)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="*":
+                    pf=Platform(x,y,32,32,True,12)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="@":
+                    pf=Platform(x,y,32,17,True,13)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="!":
+                    pf=Platform(x,y,32,32,True,14)
+                    entities.add(pf)
+                    platforms.append(pf)
+                x+=32
+            y+=32
+            x=0
     entities.add(hero)
-    total_level_width  = len(level[0])*32 # Высчитываем фактическую ширину уровня
-    total_level_height = len(level)*32   # высоту
+    total_level_width  = len(level[0][0])*32 # Высчитываем фактическую ширину уровня
+    total_level_height = len(level[0])*32   # высоту
     
     camera = Camera(camera_configure, total_level_width, total_level_height) 
     while 1:
@@ -95,6 +147,9 @@ def main():
                 right=True
             if e.type == KEYDOWN and e.key==K_UP:
                 up=True
+            if e.type == KEYDOWN and e.key==K_LSHIFT and flag==False:
+                flag=True
+                shot=True
 
             if e.type == KEYUP and e.key==K_LEFT:
                 left=False
@@ -102,11 +157,15 @@ def main():
                 right=False
             if e.type == KEYUP and e.key==K_UP:
                 up=False
-
+            if e.type == KEYUP and e.key==K_LSHIFT and flag==True:
+                flag=False
+                shot=False
             if e.type==QUIT:
                 raise SystemExit
         screen.blit(bg,(0,0))
-        hero.update(left,right,up,platforms)
+
+        hero.update(left,right,up,shot,platforms,blocks,entities, 1)
+        shot=False
         camera.update(hero)
         for e in entities:
             screen.blit(e.image, camera.apply(e))
