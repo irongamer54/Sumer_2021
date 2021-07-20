@@ -285,7 +285,7 @@ class Player(sprite.Sprite):
             self.yvel+=GRAVITY
         
         self.onGround=False
-        self.tren=0.1
+        self.tren=0.03
         self.rect.y+=self.yvel
         self.collide(0,self.yvel,platforms,blocks,0)
 
