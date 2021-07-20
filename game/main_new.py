@@ -155,8 +155,28 @@ def main():
                     pf=Platform(x,y,32,32,True,14)
                     entities.add(pf)
                     platforms.append(pf)
-                if col=="^":
+                if col=="$":
                     pf=Platform(x-2,y,32+2,32,True,15)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="^":
+                    pf=Platform(x,y,32,32,True,16)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col==">":
+                    pf=Platform(x,y,32,32,True,17)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="<":
+                    pf=Platform(x,y,32,32,True,18)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="|":
+                    pf=Platform(x+20,y,10,64,True,19)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="#":
+                    pf=Platform(x,y,32,32,True,21)
                     entities.add(pf)
                     platforms.append(pf)
                 x+=32
@@ -172,23 +192,23 @@ def main():
                  
         for e in pygame.event.get():
 
-            if e.type == KEYDOWN and e.key==K_LEFT:
+            if e.type == KEYDOWN and e.key==K_a:
                 left=True
-            if e.type == KEYDOWN and e.key==K_RIGHT:
+            if e.type == KEYDOWN and e.key==K_d:
                 right=True
-            if e.type == KEYDOWN and e.key==K_UP:
+            if e.type == KEYDOWN and e.key==K_w:
                 up=True
-            if e.type == KEYDOWN and e.key==K_LSHIFT and flag==False:
+            if e.type == KEYDOWN and e.key==K_SPACE and flag==False:
                 flag=True
                 shot=True
 
-            if e.type == KEYUP and e.key==K_LEFT:
+            if e.type == KEYUP and e.key==K_a:
                 left=False
-            if e.type == KEYUP and e.key==K_RIGHT:
+            if e.type == KEYUP and e.key==K_d:
                 right=False
-            if e.type == KEYUP and e.key==K_UP:
+            if e.type == KEYUP and e.key==K_w:
                 up=False
-            if e.type == KEYUP and e.key==K_LSHIFT and flag==True:
+            if e.type == KEYUP and e.key==K_SPACE and flag==True:
                 flag=False
                 shot=False
             if e.type==QUIT:
@@ -217,6 +237,7 @@ class Player(sprite.Sprite):
         self.image.fill(Color(COLOR))
         self.rect = Rect(x,y,WIDTH,HEIGHT)
         self.image.set_colorkey(Color(COLOR))
+        self.tren=8
         
 
     def update(self,left,right,up,shot,platforms,blocks,entities,a):
@@ -235,17 +256,27 @@ class Player(sprite.Sprite):
             self.animCount+=1
             self.xvel= MOVE_SPEED
             self.lastdir="right"
+            self.tren=0.35
         if up:
             if self.onGround:
                 self.yvel=-JUMP_POWER            
         if not (left or right):
-            self.xvel=0
             if self.lastdir=="right":
                 self.image=ANIMATION_STAY
             if self.lastdir=="left":
                 self.image=ANIMATION_STAY
                 self.image = transform.flip(self.image, True, False)
-
+        if not (left or right):
+            if self.xvel>0:
+                if self.xvel-self.tren<0:
+                    self.xvel=0
+                else:
+                    self.xvel-=self.tren
+            if self.xvel<0:
+                if self.xvel+self.tren>0:
+                    self.xvel=0
+                else:
+                    self.xvel+=self.tren
                 
         if shot:
             bult=Bulet(self.rect.x,self.rect.y,32,self.lastdir)
@@ -255,6 +286,7 @@ class Player(sprite.Sprite):
             self.yvel+=GRAVITY
         
         self.onGround=False
+        self.tren=0.01
         self.rect.y+=self.yvel
         self.collide(0,self.yvel,platforms,blocks,0)
 
@@ -270,22 +302,34 @@ class Player(sprite.Sprite):
                     if xvel>0:
                         if p.img_n!=10 :
                             self.rect.right = p.rect.left
+                            if p.img_n==18 :
+                                print('da')
+                                self.xvel= -8
+                            else:
+                                self.xvel=0
 
                     if xvel<0:
                         if p.img_n!=10 :
                             self.rect.left = p.rect.right
+                            if p.img_n==17 :
+                                print('da')
+                                self.xvel=8
+                            else:
+                                self.xvel=0
 
 
                     if yvel>0:
                         if p.img_n!=10 :
                             self.rect.bottom = p.rect.top
-                        if p.img_n==8 :
+                        if p.img_n==16 :
                             self.yvel=-11
                         else:
                             if p.img_n==10 :
                                 self.onGround = True
+                                self.tren=8
                             else:  
                                 self.onGround = True
+                                self.tren=8
                                 self.yvel=0
                     if yvel<0:
                         if p.img_n!=10 :
@@ -311,6 +355,7 @@ class Player(sprite.Sprite):
 
                     if yvel>0:
                         self.rect.bottom = b.rect.top
+                        self.tren=8
                         self.onGround = True
                         self.yvel=0 
                         b.yvel = self.yvel
@@ -417,6 +462,12 @@ image = [image.load('kam.png'),            #0
          image.load('wood_plank_pol.png'),              #13
          image.load('wood_plank_pol_flag.png'),          #14
          image.load('wood_ras.png'),                      #15
+         image.load('jump_bust.png'),                      #16
+         image.load('jump_bust.png'),                      #17
+         image.load('jump_bust.png'),                      #18
+         image.load('dor_cl.png'),                          #19
+         image.load('dor_open.png'),                        #20
+         image.load('btn.png'),                              #21
          ]
 
 class Platform(sprite.Sprite):
@@ -424,8 +475,23 @@ class Platform(sprite.Sprite):
         
         sprite.Sprite.__init__(self)
         self.image=Surface((width,hight))
-        self.image = image[img_nam]
-        self.rect = Rect(x,y,width,hight)
+        self.s_x=x
+        self.s_y=y
+        if img_nam == 16 or img_nam == 17 or img_nam == 18:
+            self.image = image[img_nam]
+            if img_nam == 17:
+                self.dir="right"
+                self.image = pygame.transform.rotate(self.image, 270)
+                self.rect = Rect(self.s_x,self.s_y,32,hight)
+            elif img_nam == 18:
+                self.dir="left"
+                self.image = pygame.transform.rotate(self.image, 90)
+                self.rect = Rect(self.s_x,self.s_y,32,hight)
+            else:
+                self.rect = Rect(self.s_x,self.s_y,32,hight)
+        else:
+            self.image = image[img_nam]
+            self.rect = Rect(self.s_x,self.s_y,width,hight)
         self.col = a
         self.img_n=img_nam
         if img_nam==15:
@@ -452,8 +518,6 @@ class Platform(sprite.Sprite):
                         if e == self:
                              entities.remove(e)
         
-        
-
 
 
 
@@ -509,18 +573,31 @@ class Block(sprite.Sprite):
                     if xvel>0:
                         self.rect.right = p.rect.left
                         self.right=False
-                        self.xvel=0
+                        if p.img_n==18 :
+                            self.xvel=-8
+                        else:
+                            self.xvel=0
                     
                     if xvel<0:
                         self.rect.left = p.rect.right
+                        if p.img_n==17 :
+                            self.xvel=8
+                        else:
+                            self.xvel=0
                         self.left=False
-                        self.xvel=0
 
                     if yvel>0:
                         self.rect.bottom = p.rect.top
-                        if p.img_n==8 :
+                        if p.img_n==16 :
                             self.tren=0.1
                             self.yvel=-JUMP_POWER
+                        elif p.img_n==21 :
+                            for pl in platforms:
+                                if pl.img_n==19:
+                                    pl.rect.right-=20
+                                    pl.image=pygame.image.load('dor_open.png')
+                                    pl.col=False
+                                    pl.img_n=20
                         else:
                             self.tren=TREN
                             self.onGround = True
