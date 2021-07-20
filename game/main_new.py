@@ -256,7 +256,6 @@ class Player(sprite.Sprite):
             self.animCount+=1
             self.xvel= MOVE_SPEED
             self.lastdir="right"
-            self.tren=0.35
         if up:
             if self.onGround:
                 self.yvel=-JUMP_POWER            
@@ -286,7 +285,7 @@ class Player(sprite.Sprite):
             self.yvel+=GRAVITY
         
         self.onGround=False
-        self.tren=0.01
+        self.tren=0.1
         self.rect.y+=self.yvel
         self.collide(0,self.yvel,platforms,blocks,0)
 
