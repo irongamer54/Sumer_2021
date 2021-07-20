@@ -1,12 +1,39 @@
 #from bulets import Bulet
-from blocks import *
+#from blocks import *
 import json
-from player import *
+import pygame
+from pygame import *
 
 WIN_WIDTH=800
 WIN_HIGHT=640
 DISPLAY = (WIN_WIDTH,WIN_HIGHT)
 BACKGROUND_COLOR="#004400"
+
+
+
+#####################player#####################
+MOVE_SPEED = 5
+WIDTH = 20
+HEIGHT = 63
+COLOR= "#888888"
+
+JUMP_POWER=8
+GRAVITY=0.35
+
+
+
+ANIMATION_DELAY = 0.1 # скорость смены кадров
+ANIMATION_RIGHT =[
+            pygame.image.load('pers2.png'),
+            pygame.image.load('pers3.png'),
+            pygame.image.load('pers4.png'),
+            pygame.image.load('pers5.png'),
+            pygame.image.load('pers6.png')
+         ]
+ANIMATION_STAY = pygame.image.load('pers1.png')
+animCount=0
+###################################################
+
 
 
 class Camera(object):
@@ -35,7 +62,7 @@ left_b=right_b=False
 
 
 def main():
-    global left_b,right_b
+    global left_b,right_b,bulets,entities, platforms
     pygame.init()
     screen=pygame.display.set_mode(DISPLAY)
     bg=Surface((WIN_WIDTH,WIN_HIGHT))
@@ -51,11 +78,7 @@ def main():
     with open("test.json") as jsonFile:
         jsonObject = json.load(jsonFile)
         jsonFile.close()
-<<<<<<< HEAD
     level=[jsonObject['map1']]
-=======
-    level=[jsonObject['map1'],jsonObject['map1_bg']]
->>>>>>> 78b501e4f0d6dd0dd360b657ed45ab036c61ebae
 
     timer=pygame.time.Clock()
     
@@ -70,15 +93,12 @@ def main():
                 #   pf=Platform(x,y,32,32,False,0)
                 #  entities.add(pf)
                 # platforms.append(pf)
-<<<<<<< HEAD
                 if col=="p":
                     hero=Player(x,y)
                 if col=="0":
                     pf=Platform(x,y,32,32,True,10)
                     entities.add(pf)
                     platforms.append(pf)
-=======
->>>>>>> 78b501e4f0d6dd0dd360b657ed45ab036c61ebae
                 if col=="1":
                     pf=Platform(x,y,32,32,True,1)
                     entities.add(pf)
@@ -114,11 +134,7 @@ def main():
                 if col=="9":
                     bl=Block(x,y,32,32)
                     entities.add(bl)
-<<<<<<< HEAD
                     blocks.append(bl)
-=======
-                    platforms.append(bl)
->>>>>>> 78b501e4f0d6dd0dd360b657ed45ab036c61ebae
                 if col=="-":
                     pf=Platform(x,y,32,32,True,0)
                     entities.add(pf)
@@ -137,6 +153,10 @@ def main():
                     platforms.append(pf)
                 if col=="!":
                     pf=Platform(x,y,32,32,True,14)
+                    entities.add(pf)
+                    platforms.append(pf)
+                if col=="^":
+                    pf=Platform(x-2,y,32+2,32,True,15)
                     entities.add(pf)
                     platforms.append(pf)
                 x+=32
@@ -181,6 +201,365 @@ def main():
         for e in entities:
             screen.blit(e.image, camera.apply(e))
         pygame.display.update()
+
+##################################player
+class Player(sprite.Sprite):
+    def __init__(self,x,y):
+        sprite.Sprite.__init__(self)
+        self.xvel=0
+        self.yvel=0
+        self.startX=x
+        self.startY=y
+        self.animCount=0
+        self.lastdir="right"
+        self.onGround=False
+        self.image=Surface((WIDTH,HEIGHT))
+        self.image.fill(Color(COLOR))
+        self.rect = Rect(x,y,WIDTH,HEIGHT)
+        self.image.set_colorkey(Color(COLOR))
+        
+
+    def update(self,left,right,up,shot,platforms,blocks,entities,a):
+        
+        if self.animCount+1>=15:
+            
+            self.animCount=0
+        if left:
+            self.image=ANIMATION_RIGHT[self.animCount//3]
+            self.image = transform.flip(self.image, True, False)
+            self.animCount+=1
+            self.xvel= -MOVE_SPEED
+            self.lastdir="left"
+        if right:
+            self.image=ANIMATION_RIGHT[self.animCount//3]
+            self.animCount+=1
+            self.xvel= MOVE_SPEED
+            self.lastdir="right"
+        if up:
+            if self.onGround:
+                self.yvel=-JUMP_POWER            
+        if not (left or right):
+            self.xvel=0
+            if self.lastdir=="right":
+                self.image=ANIMATION_STAY
+            if self.lastdir=="left":
+                self.image=ANIMATION_STAY
+                self.image = transform.flip(self.image, True, False)
+
+                
+        if shot:
+            bult=Bulet(self.rect.x,self.rect.y,32,self.lastdir)
+            bulets.append(bult)  
+            entities.add(bult)
+        if not self.onGround:
+            self.yvel+=GRAVITY
+        
+        self.onGround=False
+        self.rect.y+=self.yvel
+        self.collide(0,self.yvel,platforms,blocks,0)
+
+        self.rect.x += self.xvel
+        self.collide(self.xvel,0,platforms,blocks,a)
+        for bu in bulets:
+            bu.update(platforms,blocks,bulets,entities)
+
+    def collide(self,xvel,yvel,platforms,blocks,a):
+        for p in platforms:
+            if sprite.collide_rect(self,p):
+                if p.col==True:
+                    if xvel>0:
+                        if p.img_n!=10 :
+                            self.rect.right = p.rect.left
+
+                    if xvel<0:
+                        if p.img_n!=10 :
+                            self.rect.left = p.rect.right
+
+
+                    if yvel>0:
+                        if p.img_n!=10 :
+                            self.rect.bottom = p.rect.top
+                        if p.img_n==8 :
+                            self.yvel=-11
+                        else:
+                            if p.img_n==10 :
+                                self.onGround = True
+                            else:  
+                                self.onGround = True
+                                self.yvel=0
+                    if yvel<0:
+                        if p.img_n!=10 :
+                            self.rect.top = p.rect.bottom 
+                            self.yvel=0
+        left=False
+        right=False
+        MOVE_SPEED = 5
+        for b in blocks:
+            if sprite.collide_rect(self,b):
+                if b.col==True:
+                    if xvel>0:
+                        self.rect.right = b.rect.left
+                        right=True
+                        left=False
+                        b.xvel = self.xvel
+
+                    if xvel<0:
+                        self.rect.left = b.rect.right
+                        left=True
+                        right=False
+                        b.xvel = self.xvel
+
+                    if yvel>0:
+                        self.rect.bottom = b.rect.top
+                        self.onGround = True
+                        self.yvel=0 
+                        b.yvel = self.yvel
+
+                    if yvel<0:
+                        self.rect.top = b.rect.bottom
+                        self.yvel=0
+                        b.yvel = self.yvel
+            if a ==1 and yvel==0:
+                 m_s=self.rect.x
+                 b.right=left
+                 b.left=right
+                 b.update(m_s,left,right,platforms,blocks)
+
+
+
+
+
+
+
+class Bulet(sprite.Sprite):
+    def __init__(self,x,y,dmg,lastdir):
+        sprite.Sprite.__init__(self)   
+        self.xvel=20
+        self.yvel=0
+        self.startX=x+10
+        self.startY=y-10
+        self.dir=lastdir
+        if self.dir=='left':
+            self.xvel= -self.xvel
+        if self.dir=='right':
+            self.xvel= self.xvel
+        self.image = Surface((10,10))
+        self.image.fill(Color("#888888"))
+        self.rect = Rect(x+10, y+20, 10, 10)
+
+    def kill(self):
+        global entities, bulets
+        print(len(entities))
+        for bl in bulets:
+            if bl == self:
+                bulets.pop(bulets.index(bl))
+        for e in entities:
+            if e == self:
+                entities.remove(e)
+
+
+    def update(self,platforms,blocks,bulets,entities):
+        if self.xvel>0:
+            if self.xvel-0.1<0:
+                self.xvel=0
+            else:
+                self.xvel-=0.1
+        if self.xvel<0:
+            if self.xvel+0.1>0:
+                self.xvel=0
+            else:
+                self.xvel+=0.1
+        self.rect.y+=self.yvel
+        self.collide(platforms,blocks,0,self.yvel,bulets)
+        self.yvel+=0.35
+        self.rect.x += self.xvel
+        self.collide(platforms,blocks,self.xvel,0,bulets)
+
+
+
+    def collide(self,platforms,blocks,xvel,yvel,bulets):
+        if self.yvel==0 and self.xvel==0:
+            self.kill()
+                        
+        for p in platforms:
+            if sprite.collide_rect(self,p):
+                if p.col==True:
+                    if p.img_n==15:
+                        p.kill()
+                    self.kill()
+                    self.yvel=0
+                    self.xvel=0
+        for b in blocks:
+            if sprite.collide_rect(self,b):
+                if b!=self:
+                        self.kill()
+                        self.xvel=0
+                        self.yvel=0
+                
+##############################block
+JUMP_POWER=8
+MOVE_SPEED_s= -0.001
+GRAVITY=0.35
+TREN=0.8
+image = [image.load('kam.png'),            #0        
+         image.load('kam_flag.png'),        #1       
+         image.load('kam_pol_cverxy.png'),   #2       
+         image.load('kam_pol_cnizy.png'),     #3      
+         image.load('kam_plitka.png'),         #4     
+         image.load('kam_plitka_flag.png'),     #5   
+         image.load('kam_plitka_fakel.png'),     #6  
+         image.load('kam_polyb.png'),             #7 
+         image.load('kam_polyb_flag.png'),         #8
+         image.load('box.png'),                     #9
+         image.load('leca.png'),                     #10
+         image.load('wood.png'),                      #11
+         image.load('wood_plank.png'),                 #12
+         image.load('wood_plank_pol.png'),              #13
+         image.load('wood_plank_pol_flag.png'),          #14
+         image.load('wood_ras.png'),                      #15
+         ]
+
+class Platform(sprite.Sprite):
+    def __init__(self,x,y,width,hight,a,img_nam):
+        
+        sprite.Sprite.__init__(self)
+        self.image=Surface((width,hight))
+        self.image = image[img_nam]
+        self.rect = Rect(x,y,width,hight)
+        self.col = a
+        self.img_n=img_nam
+        if img_nam==15:
+            self.die=True
+        else:
+            self.die=False
+
+    def kill(self):
+        global entities, platforms
+        if self.img_n==15:
+            for p in platforms:
+                if sprite.collide_rect(self,p) and p.img_n==15 and p!=self:
+                    for e in entities:
+                        if e == self:
+                             entities.remove(e)
+                    for bl in platforms:
+                        if bl == self:
+                            platforms.pop(platforms.index(bl)+1)
+                    p.kill()
+                for bl in platforms:
+                        if bl == self:
+                            platforms.pop(platforms.index(bl))
+                for e in entities:
+                        if e == self:
+                             entities.remove(e)
+        
+        
+
+
+
+
+class Block(sprite.Sprite):
+    def __init__(self,x,y,width,hight):
+        sprite.Sprite.__init__(self)
+        self.xvel=0
+        self.yvel=0
+        self.right=False
+        self.left=False
+        self.image=Surface((width,hight))
+        self.image = image[9]
+        self.rect = Rect(x,y,width,hight)
+        self.onGround=False
+        self.col = True
+        self.tren=TREN
+
+    def update(self,m_s,left,right,platforms,blocks):
+        if self.left and left:
+            self.xvel= -MOVE_SPEED_s
+            
+        if self.right and right:
+            self.xvel= MOVE_SPEED_s
+            
+        if not (self.left or self.right):
+            if self.xvel>0:
+                if self.xvel-self.tren<0:
+                    self.xvel=0
+                else:
+                    self.xvel-=self.tren
+            if self.xvel<0:
+                if self.xvel+self.tren>0:
+                    self.xvel=0
+                else:
+                    self.xvel+=self.tren
+        if not self.onGround:
+            self.tren=0.01
+            self.yvel+=GRAVITY
+        self.onGround=False
+        self.rect.y+=self.yvel
+
+        self.collide(0,self.yvel,platforms,blocks)
+        self.rect.x += self.xvel
+        self.collide(self.xvel,0,platforms,blocks)
+        self.right=False
+        self.left=False
+        
+    def collide(self,xvel,yvel,platforms,blocks):
+        for p in platforms:
+            if sprite.collide_rect(self,p):
+                if p.col==True:
+                    
+                    if xvel>0:
+                        self.rect.right = p.rect.left
+                        self.right=False
+                        self.xvel=0
+                    
+                    if xvel<0:
+                        self.rect.left = p.rect.right
+                        self.left=False
+                        self.xvel=0
+
+                    if yvel>0:
+                        self.rect.bottom = p.rect.top
+                        if p.img_n==8 :
+                            self.tren=0.1
+                            self.yvel=-JUMP_POWER
+                        else:
+                            self.tren=TREN
+                            self.onGround = True
+                            self.yvel=0
+
+                    if yvel<0:
+                        self.rect.top = p.rect.bottom
+                        self.onGround==False  
+                        self.yvel=0
+        left=False
+        right=False        
+        for b in blocks:
+            if sprite.collide_rect(self,b):
+                if b!=self:
+                    if xvel>0:
+                        self.rect.right = b.rect.left
+                        b.xvel = self.xvel
+                        right=True
+                        left=False
+
+                    if xvel<0:
+                        self.rect.left = b.rect.right
+                        b.xvel = self.xvel
+                        left=True
+                        right=False
+
+                    if yvel>0:
+                        self.rect.bottom = b.rect.top
+                        self.tren=TREN
+                        self.onGround = True
+                        self.yvel=0
+
+                    if yvel<0:
+                        self.rect.top = b.rect.bottom  
+                        self.yvel=0
+                    b.right=left
+                    b.left=right
+                    b.update(0,left,right,platforms,blocks)
+
 
 
 if __name__ == "__main__":

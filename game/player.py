@@ -1,8 +1,7 @@
 
 from pygame import *
 import pyganim
-from main_new import entities
-from main_new import bulets
+
 MOVE_SPEED = 5
 WIDTH = 20
 HEIGHT = 63

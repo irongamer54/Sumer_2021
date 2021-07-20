@@ -1,19 +1,12 @@
 import pygame
 from pygame import *
 from pygame import sprite
+from main_new import entities, platforms
 
-
-<<<<<<< HEAD
 JUMP_POWER=8
 MOVE_SPEED_s= -0.001
 GRAVITY=0.35
 TREN=0.8
-=======
-
-MOVE_SPEED = 5
-GRAVITY=0.35
-
->>>>>>> 78b501e4f0d6dd0dd360b657ed45ab036c61ebae
 image = [image.load('kam.png'),            #0        
          image.load('kam_flag.png'),        #1       
          image.load('kam_pol_cverxy.png'),   #2       
@@ -29,6 +22,7 @@ image = [image.load('kam.png'),            #0
          image.load('wood_plank.png'),                 #12
          image.load('wood_plank_pol.png'),              #13
          image.load('wood_plank_pol_flag.png'),          #14
+         image.load('wood_ras.png'),                      #15
          ]
 
 class Platform(sprite.Sprite):
@@ -39,10 +33,21 @@ class Platform(sprite.Sprite):
         self.image = image[img_nam]
         self.rect = Rect(x,y,width,hight)
         self.col = a
-<<<<<<< HEAD
         self.img_n=img_nam
-=======
->>>>>>> 78b501e4f0d6dd0dd360b657ed45ab036c61ebae
+        if img_nam==15:
+            self.die=True
+        else:
+            self.die=False
+
+    def kill(self):
+        global entities, platforms
+        print(len(entities))
+        for bl in platforms:
+            if bl == self:
+                platforms.pop(platforms.index(bl))
+        for e in entities:
+            if e == self:
+                entities.remove(e)
 
 
 
@@ -50,7 +55,6 @@ class Platform(sprite.Sprite):
 class Block(sprite.Sprite):
     def __init__(self,x,y,width,hight):
         sprite.Sprite.__init__(self)
-<<<<<<< HEAD
         self.xvel=0
         self.yvel=0
         self.right=False
@@ -140,54 +144,12 @@ class Block(sprite.Sprite):
 
                     if yvel>0:
                         self.rect.bottom = b.rect.top
-=======
-        self.image=Surface((width,hight))
-        self.image = image[9]
-        self.rect = Rect(x,y,width,hight)
-        self.col = True
-
-    def update(self,left,right,platforms):
-        if left:
-            self.xvel= -MOVE_SPEED
-        if right:
-            self.xvel= -MOVE_SPEED
-           
-        if not self.onGround:
-            self.yvel+=GRAVITY
-            
-        self.onGround=False
-        self.rect.y+=self.yvel
-        self.collide(0,self.yvel,platforms)
-
-        self.rect.x += self.xvel
-        self.collide(self.xvel,0,platforms)
-
-
-    def collide(self,xvel,yvel,platforms):
-        for p in platforms:
-            if sprite.collide_rect(self,p):
-                if p.col==True:
-                    if xvel>0:
-                        self.rect.right = p.rect.left
-
-                    if xvel<0:
-                        self.rect.left = p.rect.right
-
-
-                    if yvel>0:
-                        self.rect.bottom = p.rect.top
->>>>>>> 78b501e4f0d6dd0dd360b657ed45ab036c61ebae
                         self.onGround = True
                         self.yvel=0
 
                     if yvel<0:
-<<<<<<< HEAD
                         self.rect.top = b.rect.bottom  
                         self.yvel=0
                     b.right=left
                     b.left=right
                     b.update(0,left,right,platforms,blocks)
-=======
-                        self.rect.top = p.rect.bottom  
-                        self.yvel=0
->>>>>>> 78b501e4f0d6dd0dd360b657ed45ab036c61ebae
