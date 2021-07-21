@@ -3,9 +3,10 @@
 import json
 import pygame
 from pygame import *
+from pygame import sprite
 
-WIN_WIDTH=800
-WIN_HIGHT=640
+WIN_WIDTH=400
+WIN_HIGHT=320
 DISPLAY = (WIN_WIDTH,WIN_HIGHT)
 BACKGROUND_COLOR="#004400"
 
@@ -61,7 +62,7 @@ def camera_configure(camera, target_rect):
 left_b=right_b=False
 m_c=0
 def map_new (a):
-    global flag,shot,left,right,up,entities,platforms,blocks,bulets,level,hero,camera,m_c
+    global flag,shot,left,right,up,entities,platforms,blocks,bulets,level,hero,camera,m_c,btn_prs,bg_map,bg_map_e,turels
     flag=shot=left=right=up=False
     if a>0:
         m_c=a
@@ -69,8 +70,11 @@ def map_new (a):
     platforms=[]
     blocks=[]
     bulets=[]
+    turels=[]
+    btn_prs=0
     x=y=0
     for row in level[m_c]:
+        print('da')
         for col in row:
             #if col==" ":
             #   pf=Platform(x,y,32,32,False,0)
@@ -147,11 +151,11 @@ def map_new (a):
                 entities.add(pf)
                 platforms.append(pf)
             if col==">":
-                pf=Platform(x,y,32,32,True,17)
+                pf=Platform(x+1,y,32,32,True,17)
                 entities.add(pf)
                 platforms.append(pf)
             if col=="<":
-                pf=Platform(x,y,32,32,True,18)
+                pf=Platform(x-1,y,32,32,True,18)
                 entities.add(pf)
                 platforms.append(pf)
             if col=="|":
@@ -166,9 +170,18 @@ def map_new (a):
                 pf=Platform(x,y,32,32,True,22)
                 entities.add(pf)
                 platforms.append(pf)
+            if col=="T":
+                pf=Turel(x,y,'left')
+                entities.add(pf)
+                turels.append(pf)
+            if col=="t":
+                pf=Turel(x,y,'right')
+                entities.add(pf)
+                turels.append(pf)
             x+=32
         y+=32
         x=0
+    print(entities)
     entities.add(hero)
     total_level_width  = len(level[m_c][0])*32 # Высчитываем фактическую ширину уровня
     total_level_height = len(level[m_c])*32   # высоту
@@ -178,24 +191,22 @@ def map_new (a):
 
 
 def main():
-    global left_b,right_b,flag,shot,left,right,up,entities,platforms,bulets,level,hero,blocks,camera,m_c
+    global left_b,right_b,flag,shot,left,right,up,entities,platforms,bulets,level,hero,blocks,camera,m_c,bg_map,bg_map_e
     pygame.init()
     screen=pygame.display.set_mode(DISPLAY)
     bg=Surface((WIN_WIDTH,WIN_HIGHT))
-    bg.fill(Color(BACKGROUND_COLOR))
-
+    #bg.fill(Color(BACKGROUND_COLOR))
     #hero=Player(100,55)
     flag=shot=left=right=up=False
 
     with open("test.json") as jsonFile:
         jsonObject = json.load(jsonFile)
         jsonFile.close()
-    level=[jsonObject['map1'],jsonObject['map1_bg'],jsonObject['map1_bg2']]
-
+    level=[jsonObject['map1'],jsonObject['map2'],jsonObject['map3']]
+    bg_map=[jsonObject['map1_bg']]
     timer=pygame.time.Clock()
     
     map_new(0)
-    hero.a=m_c+1
     while 1:
         timer.tick(60)
                  
@@ -222,11 +233,26 @@ def main():
                 shot=False
             if e.type==QUIT:
                 raise SystemExit
-        screen.blit(bg,(0,0))
 
-        hero.update(left,right,up,shot,platforms,blocks,entities)
+        pf=Surface((1024,576))   
+        pf = pygame.image.load('fon.png')
+        screen.blit(pf,(0,0))
+                          
+
+        hero.update(left,right,up,shot,platforms,blocks,entities,turels)
+        for tr in turels:
+            tr.update()
+        if btn_prs>=6:
+            for pl in platforms:
+                if pl.img_n==19:
+                    pl.rect.right-=20
+                    pl.image=pygame.image.load('dor_open.png')
+                    pl.col=False
+                    pl.img_n=20
         shot=False
+        
         camera.update(hero)
+        
         for e in entities:
             screen.blit(e.image, camera.apply(e))
         pygame.display.update()
@@ -250,7 +276,7 @@ class Player(sprite.Sprite):
         self.a=a
         
 
-    def update(self,left,right,up,shot,platforms,blocks,entities):
+    def update(self,left,right,up,shot,platforms,blocks,entities,turels):
         
         if self.animCount+1>=15:
             
@@ -302,9 +328,10 @@ class Player(sprite.Sprite):
         self.rect.x += self.xvel
         self.collide(self.xvel,0,platforms,blocks)
         for bu in bulets:
-            bu.update(platforms,blocks,bulets,entities)
+            bu.update(platforms,blocks,bulets,entities,turels)
 
     def collide(self,xvel,yvel,platforms,blocks):
+        global level
         for p in platforms:
             if sprite.collide_rect(self,p):
                 if p.col==True:
@@ -348,7 +375,13 @@ class Player(sprite.Sprite):
         right=False
         MOVE_SPEED = 5
         for b in blocks:
-            if sprite.collide_rect(self,b):
+            if self.rect.right>=len(level[self.a-1][0])*32:
+                self.rect.right = len(level[self.a-1][0])*32-32
+                self.xvel=0 
+            elif self.rect.right<=0:
+                self.rect.right = 0
+                self.xvel=0 
+            elif sprite.collide_rect(self,b):
                 if b.col==True:
                     if xvel>0:
                         self.rect.right = b.rect.left
@@ -380,8 +413,40 @@ class Player(sprite.Sprite):
                  b.update(m_s,left,right,platforms,blocks)
 
 
+class Turel(sprite.Sprite):
+    def __init__(self,x,y,dir):
+        sprite.Sprite.__init__(self)   
+        self.image = Surface((32,32))
+        self.image.fill(Color("#888888"))
+        self.rect = Rect(x, y, 32,32)
+        self.hp=64
+        self.dir=dir
+        self.i=0
+        self.shot=False
+
+    def kill(self):
+        global entities, turels
+        for tr in turels:
+            if tr == self:
+                turels.pop(turels.index(tr))
+        for e in entities:
+            if e == self:
+                entities.remove(e)
 
 
+    def update(self):
+        if self.hp<=0:
+            self.kill()
+        if self.i>=60:
+            self.i=0
+            self.shot=True
+        if self.shot:
+            bult=Bulet(self.rect.x-20,self.rect.y-20,32,self.dir)
+            bulets.append(bult)  
+            entities.add(bult)
+        self.shot=False 
+        self.i+=1  
+        
 
 
 
@@ -400,10 +465,10 @@ class Bulet(sprite.Sprite):
         self.image = Surface((10,10))
         self.image.fill(Color("#888888"))
         self.rect = Rect(x+10, y+20, 10, 10)
+        self.dmg=dmg
 
     def kill(self):
         global entities, bulets
-        print(len(entities))
         for bl in bulets:
             if bl == self:
                 bulets.pop(bulets.index(bl))
@@ -412,7 +477,7 @@ class Bulet(sprite.Sprite):
                 entities.remove(e)
 
 
-    def update(self,platforms,blocks,bulets,entities):
+    def update(self,platforms,blocks,bulets,entities,turels):
         if self.xvel>0:
             if self.xvel-0.1<0:
                 self.xvel=0
@@ -424,14 +489,14 @@ class Bulet(sprite.Sprite):
             else:
                 self.xvel+=0.1
         self.rect.y+=self.yvel
-        self.collide(platforms,blocks,0,self.yvel,bulets)
+        self.collide(platforms,blocks,0,self.yvel,bulets,turels)
         self.yvel+=0.35
         self.rect.x += self.xvel
-        self.collide(platforms,blocks,self.xvel,0,bulets)
+        self.collide(platforms,blocks,self.xvel,0,bulets,turels)
 
 
 
-    def collide(self,platforms,blocks,xvel,yvel,bulets):
+    def collide(self,platforms,blocks,xvel,yvel,bulets,turels):
         if self.yvel==0 and self.xvel==0:
             self.kill()
                         
@@ -445,10 +510,16 @@ class Bulet(sprite.Sprite):
                     self.xvel=0
         for b in blocks:
             if sprite.collide_rect(self,b):
-                if b!=self:
-                        self.kill()
-                        self.xvel=0
-                        self.yvel=0
+                    self.kill()
+                    self.xvel=0
+                    self.yvel=0
+        for t in turels:
+            if sprite.collide_rect(self,t):
+                self.kill()
+                self.xvel=0
+                self.yvel=0
+                t.hp-=self.dmg
+
                 
 ##############################block
 JUMP_POWER=8
@@ -479,7 +550,14 @@ image = [image.load('kam.png'),            #0
          image.load('btn.png'),                              #21
          image.load('kam.png'),                               #22          
          ]
-
+class backgrn(sprite.Sprite):
+    def __init__(self,x,y,width,hight,img_nam):
+        sprite.Sprite.__init__(self)
+        self.s_x=x
+        self.s_y=y
+        self.image=Surface((width,hight))
+        self.image = image[img_nam]
+        self.rect = Rect(self.s_x,self.s_y,width,hight) 
 class Platform(sprite.Sprite):
     def __init__(self,x,y,width,hight,a,img_nam):
         
@@ -504,6 +582,7 @@ class Platform(sprite.Sprite):
             self.rect = Rect(self.s_x,self.s_y,width,hight)
         self.col = a
         self.img_n=img_nam
+        self.flag=False
         if img_nam==15:
             self.die=True
         else:
@@ -576,6 +655,7 @@ class Block(sprite.Sprite):
         self.left=False
         
     def collide(self,xvel,yvel,platforms,blocks):
+        global btn_prs
         for p in platforms:
             if sprite.collide_rect(self,p):
                 if p.col==True:
@@ -589,6 +669,7 @@ class Block(sprite.Sprite):
                             self.xvel=0
                     
                     if xvel<0:
+                        
                         self.rect.left = p.rect.right
                         if p.img_n==17 :
                             self.xvel=8
@@ -597,24 +678,29 @@ class Block(sprite.Sprite):
                         self.left=False
 
                     if yvel>0:
+                        if p.img_n==18 :
+                            self.xvel=-8
+                        if p.img_n==17 :
+                            self.xvel=8
                         self.rect.bottom = p.rect.top
                         if p.img_n==16 :
                             self.tren=0.1
                             self.yvel=-JUMP_POWER
-                        elif p.img_n==21 :
-                            for pl in platforms:
-                                if pl.img_n==19:
-                                    pl.rect.right-=20
-                                    pl.image=pygame.image.load('dor_open.png')
-                                    pl.col=False
-                                    pl.img_n=20
+                        elif p.img_n==21 and p.flag==False:
+                            btn_prs+=1
+                            p.flag=True
+                            print(btn_prs)
+                            self.tren=TREN
+                            self.onGround = True
+                            self.yvel=0
                         else:
                             self.tren=TREN
                             self.onGround = True
                             self.yvel=0
 
                     if yvel<0:
-                        self.rect.top = p.rect.bottom
+                        if p.img_n!=17 and p.img_n!=18:
+                            self.rect.top = p.rect.bottom
                         self.onGround==False  
                         self.yvel=0
         left=False
