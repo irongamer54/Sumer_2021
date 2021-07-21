@@ -59,10 +59,126 @@ def camera_configure(camera, target_rect):
 
     return Rect(l, t, w, h)      
 left_b=right_b=False
+m_c=0
+def map_new (a):
+    global flag,shot,left,right,up,entities,platforms,blocks,bulets,level,hero,camera,m_c
+    flag=shot=left=right=up=False
+    if a>0:
+        m_c=a
+    entities = pygame.sprite.Group()
+    platforms=[]
+    blocks=[]
+    bulets=[]
+    x=y=0
+    for row in level[m_c]:
+        for col in row:
+            #if col==" ":
+            #   pf=Platform(x,y,32,32,False,0)
+            #  entities.add(pf)
+            # platforms.append(pf)
+            if col=="p":
+                hero=Player(x,y,m_c+1)
+            if col=="0":
+                pf=Platform(x,y,32,32,True,10)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="1":
+                pf=Platform(x,y,32,32,True,1)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="2":
+                pf=Platform(x,y,32,32,True,2)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="3":
+                pf=Platform(x,y,32,32,True,3)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="4":
+                pf=Platform(x,y,32,17,True,4)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="5":
+                pf=Platform(x,y,32,32,True,5)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="6":
+                pf=Platform(x,y,32,32,True,6)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="7":
+                pf=Platform(x,y,32,32,True,7)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="8":
+                pf=Platform(x,y,32,17,True,8)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="9":
+                bl=Block(x,y,32,32)
+                entities.add(bl)
+                blocks.append(bl)
+            if col=="-":
+                pf=Platform(x,y,32,32,True,0)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="+":
+                pf=Platform(x,y,32,32,True,11)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="*":
+                pf=Platform(x,y,32,32,True,12)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="@":
+                pf=Platform(x,y,32,17,True,13)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="!":
+                pf=Platform(x,y,32,32,True,14)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="$":
+                pf=Platform(x-2,y,32+2,32,True,15)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="^":
+                pf=Platform(x,y,32,32,True,16)
+                entities.add(pf)
+                platforms.append(pf)
+            if col==">":
+                pf=Platform(x,y,32,32,True,17)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="<":
+                pf=Platform(x,y,32,32,True,18)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="|":
+                pf=Platform(x+20,y,10,64,True,19)
+                entities.add(pf)
+                platforms.append(pf)
+            if col=="#":
+                pf=Platform(x,y,32,32,True,21)
+                entities.add(pf)
+                platforms.append(pf)
+            if col==".":
+                pf=Platform(x,y,32,32,True,22)
+                entities.add(pf)
+                platforms.append(pf)
+            x+=32
+        y+=32
+        x=0
+    entities.add(hero)
+    total_level_width  = len(level[m_c][0])*32 # Высчитываем фактическую ширину уровня
+    total_level_height = len(level[m_c])*32   # высоту
+    
+    camera = Camera(camera_configure, total_level_width, total_level_height) 
+
 
 
 def main():
-    global left_b,right_b,bulets,entities, platforms
+    global left_b,right_b,flag,shot,left,right,up,entities,platforms,bulets,level,hero,blocks,camera,m_c
     pygame.init()
     screen=pygame.display.set_mode(DISPLAY)
     bg=Surface((WIN_WIDTH,WIN_HIGHT))
@@ -71,122 +187,15 @@ def main():
     #hero=Player(100,55)
     flag=shot=left=right=up=False
 
-    entities = pygame.sprite.Group()
-    platforms=[]
-    blocks=[]
-    bulets=[]
     with open("test.json") as jsonFile:
         jsonObject = json.load(jsonFile)
         jsonFile.close()
-    level=[jsonObject['map1']]
+    level=[jsonObject['map1'],jsonObject['map1_bg'],jsonObject['map1_bg2']]
 
     timer=pygame.time.Clock()
     
-    
-    
-    
-    x=y=0
-    for i in range(len(level)):
-        for row in level[i]:
-            for col in row:
-                #if col==" ":
-                #   pf=Platform(x,y,32,32,False,0)
-                #  entities.add(pf)
-                # platforms.append(pf)
-                if col=="p":
-                    hero=Player(x,y)
-                if col=="0":
-                    pf=Platform(x,y,32,32,True,10)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="1":
-                    pf=Platform(x,y,32,32,True,1)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="2":
-                    pf=Platform(x,y,32,32,True,2)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="3":
-                    pf=Platform(x,y,32,32,True,3)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="4":
-                    pf=Platform(x,y,32,17,True,4)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="5":
-                    pf=Platform(x,y,32,32,True,5)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="6":
-                    pf=Platform(x,y,32,32,True,6)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="7":
-                    pf=Platform(x,y,32,32,True,7)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="8":
-                    pf=Platform(x,y,32,17,True,8)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="9":
-                    bl=Block(x,y,32,32)
-                    entities.add(bl)
-                    blocks.append(bl)
-                if col=="-":
-                    pf=Platform(x,y,32,32,True,0)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="+":
-                    pf=Platform(x,y,32,32,True,11)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="*":
-                    pf=Platform(x,y,32,32,True,12)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="@":
-                    pf=Platform(x,y,32,17,True,13)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="!":
-                    pf=Platform(x,y,32,32,True,14)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="$":
-                    pf=Platform(x-2,y,32+2,32,True,15)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="^":
-                    pf=Platform(x,y,32,32,True,16)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col==">":
-                    pf=Platform(x,y,32,32,True,17)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="<":
-                    pf=Platform(x,y,32,32,True,18)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="|":
-                    pf=Platform(x+20,y,10,64,True,19)
-                    entities.add(pf)
-                    platforms.append(pf)
-                if col=="#":
-                    pf=Platform(x,y,32,32,True,21)
-                    entities.add(pf)
-                    platforms.append(pf)
-                x+=32
-            y+=32
-            x=0
-    entities.add(hero)
-    total_level_width  = len(level[0][0])*32 # Высчитываем фактическую ширину уровня
-    total_level_height = len(level[0])*32   # высоту
-    
-    camera = Camera(camera_configure, total_level_width, total_level_height) 
+    map_new(0)
+    hero.a=m_c+1
     while 1:
         timer.tick(60)
                  
@@ -215,7 +224,7 @@ def main():
                 raise SystemExit
         screen.blit(bg,(0,0))
 
-        hero.update(left,right,up,shot,platforms,blocks,entities, 1)
+        hero.update(left,right,up,shot,platforms,blocks,entities)
         shot=False
         camera.update(hero)
         for e in entities:
@@ -224,7 +233,7 @@ def main():
 
 ##################################player
 class Player(sprite.Sprite):
-    def __init__(self,x,y):
+    def __init__(self,x,y,a):
         sprite.Sprite.__init__(self)
         self.xvel=0
         self.yvel=0
@@ -238,9 +247,10 @@ class Player(sprite.Sprite):
         self.rect = Rect(x,y,WIDTH,HEIGHT)
         self.image.set_colorkey(Color(COLOR))
         self.tren=8
+        self.a=a
         
 
-    def update(self,left,right,up,shot,platforms,blocks,entities,a):
+    def update(self,left,right,up,shot,platforms,blocks,entities):
         
         if self.animCount+1>=15:
             
@@ -287,14 +297,14 @@ class Player(sprite.Sprite):
         self.onGround=False
         self.tren=0.03
         self.rect.y+=self.yvel
-        self.collide(0,self.yvel,platforms,blocks,0)
+        self.collide(0,self.yvel,platforms,blocks)
 
         self.rect.x += self.xvel
-        self.collide(self.xvel,0,platforms,blocks,a)
+        self.collide(self.xvel,0,platforms,blocks)
         for bu in bulets:
             bu.update(platforms,blocks,bulets,entities)
 
-    def collide(self,xvel,yvel,platforms,blocks,a):
+    def collide(self,xvel,yvel,platforms,blocks):
         for p in platforms:
             if sprite.collide_rect(self,p):
                 if p.col==True:
@@ -302,7 +312,6 @@ class Player(sprite.Sprite):
                         if p.img_n!=10 :
                             self.rect.right = p.rect.left
                             if p.img_n==18 :
-                                print('da')
                                 self.xvel= -8
                             else:
                                 self.xvel=0
@@ -311,13 +320,14 @@ class Player(sprite.Sprite):
                         if p.img_n!=10 :
                             self.rect.left = p.rect.right
                             if p.img_n==17 :
-                                print('da')
                                 self.xvel=8
                             else:
                                 self.xvel=0
 
 
                     if yvel>0:
+                        if p.img_n==22:
+                            map_new(self.a)
                         if p.img_n!=10 :
                             self.rect.bottom = p.rect.top
                         if p.img_n==16 :
@@ -363,7 +373,7 @@ class Player(sprite.Sprite):
                         self.rect.top = b.rect.bottom
                         self.yvel=0
                         b.yvel = self.yvel
-            if a ==1 and yvel==0:
+            if yvel==0:
                  m_s=self.rect.x
                  b.right=left
                  b.left=right
@@ -467,6 +477,7 @@ image = [image.load('kam.png'),            #0
          image.load('dor_cl.png'),                          #19
          image.load('dor_open.png'),                        #20
          image.load('btn.png'),                              #21
+         image.load('kam.png'),                               #22          
          ]
 
 class Platform(sprite.Sprite):
