@@ -5,8 +5,8 @@ import pygame
 from pygame import *
 from pygame import sprite
 
-WIN_WIDTH=620
-WIN_HIGHT=420
+WIN_WIDTH=700
+WIN_HIGHT=500
 DISPLAY = (WIN_WIDTH,WIN_HIGHT)
 BACKGROUND_COLOR="#004400"
 
@@ -32,19 +32,42 @@ ANIMATION_RIGHT =[
             pygame.image.load('pers6.png')
          ]
 ANIMATION_STAY = pygame.image.load('pers1.png')
-ANIMATION_CKN1 =[
-            pygame.image.load('ckn_1.png'),
-            pygame.image.load('ckn_2.png'),
-            pygame.image.load('ckn_3.png'),
-            pygame.image.load('ckn_4.png'),
-            pygame.image.load('ckn_5.png'),
-            pygame.image.load('ckn_6.png'),
-            pygame.image.load('ckn_7.png')
+ANIMATION_CKN =[
+            [
+                pygame.image.load('ckn_1.png'),
+                pygame.image.load('ckn_2.png'),
+                pygame.image.load('ckn_3.png'),
+                pygame.image.load('ckn_4.png'),
+                pygame.image.load('ckn_5.png'),
+                pygame.image.load('ckn_6.png'),
+                pygame.image.load('ckn_7.png')
+            ],
+            [
+                pygame.image.load('ckn_1_h.png'),
+                pygame.image.load('ckn_2_h.png'),
+                pygame.image.load('ckn_3_h.png'),
+                pygame.image.load('ckn_4_h.png'),
+                pygame.image.load('ckn_5_h.png'),
+                pygame.image.load('ckn_6_h.png'),
+                pygame.image.load('ckn_7_h.png')
+            ],
+            [
+                pygame.image.load('ckn_1_s.png'),
+                pygame.image.load('ckn_2_s.png'),
+                pygame.image.load('ckn_3_s.png'),
+                pygame.image.load('ckn_4_s.png'),
+                pygame.image.load('ckn_5_s.png'),
+                pygame.image.load('ckn_6_s.png'),
+                pygame.image.load('ckn_7_s.png')
+            ]
+
          ]
 animCount=0
 ###################################################
 ckn_c=0
-
+fon=Surface((WIN_WIDTH,WIN_HIGHT))   
+fon = pygame.image.load('fon.png')
+fon= pygame.transform.scale(fon, (WIN_WIDTH,WIN_HIGHT))
 
 class Camera(object):
     def __init__(self, camera_func, width, height):
@@ -75,8 +98,9 @@ def map_new (a):
     flag=shot=left=right=up=reload=False
     if a>0:
         m_c=a
+
     if a == 0:
-        ckn_c=0
+        ckn_c=[]
     entities = pygame.sprite.Group()
     platforms=[]
     blocks=[]
@@ -191,7 +215,15 @@ def map_new (a):
                 entities.add(pf)
                 turels.append(pf)
             if col=="c":
-                pf=NPC(x+10,y-5,10,15,True)
+                pf=NPC(x+10,y-5,10,15,True,0)
+                entities.add(pf)
+                ckn.append(pf)
+            if col=="C":
+                pf=NPC(x+10,y-5,10,15,True,1)
+                entities.add(pf)
+                ckn.append(pf)
+            if col=="S":
+                pf=NPC(x+10,y-5,10,15,True,2)
                 entities.add(pf)
                 ckn.append(pf)
             if col=="!":
@@ -218,12 +250,11 @@ def main():
     #bg.fill(Color(BACKGROUND_COLOR))
     #hero=Player(100,55)
     flag=shot=left=right=up=False
-
+    font = pygame.font.Font('open-sans.ttf', 25)
     with open("test.json") as jsonFile:
         jsonObject = json.load(jsonFile)
         jsonFile.close()
-    level=[jsonObject['map1'],jsonObject['map2'],jsonObject['map3']]
-    bg_map=[jsonObject['map1_bg']]
+    level=[jsonObject['map1'],jsonObject['map2'],jsonObject['map3'],jsonObject['map4']]
     timer=pygame.time.Clock()
     
     map_new(0)
@@ -258,10 +289,8 @@ def main():
             if e.type==QUIT:
                 raise SystemExit
 
-        pf=Surface((1024,576))   
-        pf = pygame.image.load('fon.png')
-        pf = pygame.transform.scale(pf, (WIN_WIDTH,WIN_HIGHT))
-        screen.blit(pf,(0,0))
+
+        screen.blit(fon,(0,0))
         c_x=WIN_WIDTH
         
                           
@@ -285,14 +314,33 @@ def main():
             screen.blit(e.image, camera.apply(e))
 
 
-        for i in range(ckn_c):
-            pf=pygame.image.load('ckn_4.png')
+        for i in range(len(ckn_c)):
+            pf=ANIMATION_CKN[ckn_c[i]][3]
             screen.blit(pf,(c_x-32,32))
             c_x-=32
         hp_l=2*hero.hp
         pf= Surface((hp_l,20))
-        pf.fill(Color("#888888"))
-        screen.blit(pf,(5,WIN_HIGHT-30))
+        pl= Surface((64,64))
+       
+        pl=pygame.image.load('pulya.png')
+        text = font.render(str(hero.mgz)+"/15",True,"#e4cf45")
+        screen.blit(pl,(85,WIN_HIGHT-62))
+        screen.blit(text, [100,WIN_HIGHT-70])
+        if hero.hp>0:
+            if hero.hp>75:
+                pl=pygame.image.load('heat_1.png')
+                pf.fill(Color("#7FFF00"))
+            elif hero.hp>50:
+                pl=pygame.image.load('heat_2.png')
+                pf.fill(Color("#c0d81f"))
+            elif hero.hp>25:
+                pl=pygame.image.load('heat_3.png')
+                pf.fill(Color("#d8b71f"))
+            elif hero.hp>0:
+                pl=pygame.image.load('heat_4.png')
+                pf.fill(Color("#d8461f"))
+            screen.blit(pl,(5,WIN_HIGHT-70))
+            screen.blit(pf,(70,WIN_HIGHT-30))
 
 
         pygame.display.update()
@@ -355,11 +403,11 @@ class Player(sprite.Sprite):
                 else:
                     self.xvel+=self.tren
                 
-        if shot and self.mgz>0:
+        if shot and self.mgz>0 and not  self.flag_r:
             if  self.lastdir=="left":
                 bult=Bulet(self.rect.x-20,self.rect.y,32,self.lastdir)
             else:
-                bult=Bulet(self.rect.x+32,self.rect.y,32,self.lastdir)
+                bult=Bulet(self.rect.x,self.rect.y,32,self.lastdir)
             self.mgz-=1
             bulets.append(bult)  
             entities.add(bult)
@@ -367,9 +415,11 @@ class Player(sprite.Sprite):
             self.flag_r=True
         if self.flag_r==True:
             self.b+=1
-            if self.b>=180:
+            if self.b%12==0 and self.mgz<15:
+                self.mgz+=1
+            if self.b>180 or  self.mgz>=15:
                 self.b=0
-                self.mgz=15
+                #self.mgz=15
                 self.flag_r=False
         if not self.onGround:
             self.yvel+=GRAVITY
@@ -458,7 +508,7 @@ class Player(sprite.Sprite):
         for c in ckn:
             if sprite.collide_rect(self,c):
                 c.kill(ckn)
-                ckn_c+=1
+                ckn_c.append(c.an_n)
         for b in bulets:
             if sprite.collide_rect(self,b):
                 if self.hp>0:
@@ -507,7 +557,11 @@ class Turel(sprite.Sprite):
     def __init__(self,x,y,dir):
         sprite.Sprite.__init__(self)   
         self.image = Surface((32,32))
-        self.image.fill(Color("#888888"))
+        if dir=="right":
+            self.image=pygame.image.load('turel.png')
+        if dir=="left":
+            self.image=pygame.image.load('turel.png')
+            self.image = transform.flip(self.image, True, False)
         self.rect = Rect(x, y, 32,32)
         self.hp=64
         self.dir=dir
@@ -536,7 +590,7 @@ class Turel(sprite.Sprite):
                 a=32
             if self.dir=="left":
                 a=-20
-            bult=Bulet(self.rect.x+a,self.rect.y-20,10,self.dir)
+            bult=Bulet(self.rect.x+a,self.rect.y-13,10,self.dir)
             bulets.append(bult)  
             entities.add(bult)
         self.shot=False 
@@ -553,12 +607,15 @@ class Bulet(sprite.Sprite):
         self.startX=x+10
         self.startY=y-10
         self.dir=lastdir
+        self.image = Surface((15,15))
+        self.image= pygame.image.load("pul.png")
         if self.dir=='left':
+            self.image = transform.flip(self.image, True, False)
             self.xvel= -self.xvel
         if self.dir=='right':
             self.xvel= self.xvel
-        self.image = Surface((10,10))
-        self.image.fill(Color("#888888"))
+       
+        
         self.rect = Rect(x+10+self.xvel, y+20, 10, 10)
         self.dmg=dmg
 
@@ -705,21 +762,22 @@ class Platform(sprite.Sprite):
                              entities.remove(e)
         
 class NPC(sprite.Sprite):
-     def __init__(self,x,y,width,hight,tcbl):
+     def __init__(self,x,y,width,hight,tcbl,an_n):
         sprite.Sprite.__init__(self)
         self.s_x=x
         self.s_y=y
         self.image=Surface((width,hight))
-        self.image = ANIMATION_CKN1[0]
+        self.image = ANIMATION_CKN[an_n]
         self.rect = Rect(self.s_x,self.s_y,width,hight) 
         self.tcbl = tcbl
         self.animCount=0
+        self.an_n=an_n
         self.animVel=1
 
      def update(self):
         if (self.animCount+1>=35 and self.animVel>0) or (self.animCount-1<=0and self.animVel<0):
             self.animVel =- self.animVel
-        self.image=ANIMATION_CKN1[self.animCount//5]
+        self.image=ANIMATION_CKN[self.an_n][self.animCount//5]
         self.animCount+=self.animVel
 
      def kill(self,ckn):
