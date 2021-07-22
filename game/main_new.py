@@ -5,8 +5,8 @@ import pygame
 from pygame import *
 from pygame import sprite
 
-WIN_WIDTH=1080
-WIN_HIGHT=720
+WIN_WIDTH=620
+WIN_HIGHT=420
 DISPLAY = (WIN_WIDTH,WIN_HIGHT)
 BACKGROUND_COLOR="#004400"
 
@@ -43,7 +43,7 @@ ANIMATION_CKN1 =[
          ]
 animCount=0
 ###################################################
-
+ckn_c=0
 
 
 class Camera(object):
@@ -71,10 +71,12 @@ def camera_configure(camera, target_rect):
 left_b=right_b=False
 m_c=0
 def map_new (a):
-    global flag,shot,left,right,up,entities,platforms,blocks,bulets,level,hero,camera,m_c,btn_prs,bg_map,bg_map_e,turels,ckn
-    flag=shot=left=right=up=False
+    global flag,shot,left,right,up,entities,platforms,blocks,bulets,level,hero,camera,m_c,btn_prs,bg_map,bg_map_e,turels,ckn,reload,ckn_c
+    flag=shot=left=right=up=reload=False
     if a>0:
         m_c=a
+    if a == 0:
+        ckn_c=0
     entities = pygame.sprite.Group()
     platforms=[]
     blocks=[]
@@ -148,7 +150,7 @@ def map_new (a):
                 pf=Platform(x,y,32,17,True,13)
                 entities.add(pf)
                 platforms.append(pf)
-            if col=="!":
+            if col=="%":
                 pf=Platform(x,y,32,32,True,14)
                 entities.add(pf)
                 platforms.append(pf)
@@ -192,6 +194,10 @@ def map_new (a):
                 pf=NPC(x+10,y-5,10,15,True)
                 entities.add(pf)
                 ckn.append(pf)
+            if col=="!":
+                pf=Platform(x,y+10,32,20,True,23)
+                entities.add(pf)
+                platforms.append(pf)
             x+=32
         y+=32
         x=0
@@ -205,7 +211,7 @@ def map_new (a):
 
 
 def main():
-    global left_b,right_b,flag,shot,left,right,up,entities,platforms,bulets,level,hero,blocks,camera,m_c,bg_map,bg_map_e,ckn
+    global left_b,right_b,flag,shot,left,right,up,entities,platforms,bulets,level,hero,blocks,camera,m_c,bg_map,bg_map_e,ckn,reload
     pygame.init()
     screen=pygame.display.set_mode(DISPLAY)
     bg=Surface((WIN_WIDTH,WIN_HIGHT))
@@ -235,6 +241,8 @@ def main():
             if e.type == KEYDOWN and e.key==K_SPACE and flag==False:
                 flag=True
                 shot=True
+            if e.type == KEYDOWN and e.key==K_r:
+                reload=True
 
             if e.type == KEYUP and e.key==K_a:
                 left=False
@@ -242,6 +250,8 @@ def main():
                 right=False
             if e.type == KEYUP and e.key==K_w:
                 up=False
+            if e.type == KEYUP and e.key==K_r:
+                reload=False
             if e.type == KEYUP and e.key==K_SPACE and flag==True:
                 flag=False
                 shot=False
@@ -252,9 +262,11 @@ def main():
         pf = pygame.image.load('fon.png')
         pf = pygame.transform.scale(pf, (WIN_WIDTH,WIN_HIGHT))
         screen.blit(pf,(0,0))
+        c_x=WIN_WIDTH
+        
                           
 
-        hero.update(left,right,up,shot,platforms,blocks,entities,turels,ckn)
+        hero.update(left,right,up,shot,reload,platforms,blocks,entities,turels,ckn)
         for tr in turels:
             tr.update()
         if btn_prs>=6:
@@ -271,6 +283,18 @@ def main():
             ck.update()
         for e in entities:
             screen.blit(e.image, camera.apply(e))
+
+
+        for i in range(ckn_c):
+            pf=pygame.image.load('ckn_4.png')
+            screen.blit(pf,(c_x-32,32))
+            c_x-=32
+        hp_l=2*hero.hp
+        pf= Surface((hp_l,20))
+        pf.fill(Color("#888888"))
+        screen.blit(pf,(5,WIN_HIGHT-30))
+
+
         pygame.display.update()
 
 ##################################player
@@ -290,11 +314,12 @@ class Player(sprite.Sprite):
         self.image.set_colorkey(Color(COLOR))
         self.tren=8        
         self.hp=100
+        self.mgz=15
         self.a=a
-        
+        self.flag_r=False
+        self.b=0
 
-    def update(self,left,right,up,shot,platforms,blocks,entities,turels,ckn):
-        
+    def update(self,left,right,up,shot,reload,platforms,blocks,entities,turels,ckn):
         if self.animCount+1>=15:
             
             self.animCount=0
@@ -330,31 +355,62 @@ class Player(sprite.Sprite):
                 else:
                     self.xvel+=self.tren
                 
-        if shot:
+        if shot and self.mgz>0:
             if  self.lastdir=="left":
                 bult=Bulet(self.rect.x-20,self.rect.y,32,self.lastdir)
             else:
                 bult=Bulet(self.rect.x+32,self.rect.y,32,self.lastdir)
+            self.mgz-=1
             bulets.append(bult)  
             entities.add(bult)
+        if reload and self.mgz<15:
+            self.flag_r=True
+        if self.flag_r==True:
+            self.b+=1
+            if self.b>=180:
+                self.b=0
+                self.mgz=15
+                self.flag_r=False
         if not self.onGround:
             self.yvel+=GRAVITY
         if self.hp<=0:
+            map_new(0)
             print("lox")
             self.yvel=0
             self.xvel=0
         self.onGround=False
         self.tren=0.03
         self.rect.y+=self.yvel
-        self.collide(0,self.yvel,platforms,blocks,ckn,bulets)
+        self.collide(0,self.yvel,platforms,blocks,ckn,bulets,turels)
 
         self.rect.x += self.xvel
-        self.collide(self.xvel,0,platforms,blocks,ckn,bulets)
+        self.collide(self.xvel,0,platforms,blocks,ckn,bulets,turels)
         for bu in bulets:
             bu.update(platforms,blocks,bulets,entities,turels)
 
-    def collide(self,xvel,yvel,platforms,blocks,ckn,bulets):
-        global level
+    def collide(self,xvel,yvel,platforms,blocks,ckn,bulets,turels):
+        global level,ckn_c
+        for t in turels:
+            if sprite.collide_rect(self,t):
+                if xvel>0:
+                    self.rect.right = t.rect.left
+                    self.xvel=0
+
+                if xvel<0:
+                    self.rect.left = t.rect.right
+                    self.xvel=0
+
+
+                if yvel>0:
+                    self.rect.bottom = t.rect.top
+                    self.onGround = True
+                    self.tren=8
+                    self.yvel=0
+                if yvel<0:
+                    self.rect.top = t.rect.bottom 
+                    self.yvel=0
+
+
         for p in platforms:
             if sprite.collide_rect(self,p):
                 if p.col==True:
@@ -376,6 +432,8 @@ class Player(sprite.Sprite):
 
 
                     if yvel>0:
+                        if p.img_n==23:
+                            self.hp=0
                         if p.img_n==22:
                             map_new(self.a)
                         if p.img_n!=10 :
@@ -400,6 +458,7 @@ class Player(sprite.Sprite):
         for c in ckn:
             if sprite.collide_rect(self,c):
                 c.kill(ckn)
+                ckn_c+=1
         for b in bulets:
             if sprite.collide_rect(self,b):
                 if self.hp>0:
@@ -500,7 +559,7 @@ class Bulet(sprite.Sprite):
             self.xvel= self.xvel
         self.image = Surface((10,10))
         self.image.fill(Color("#888888"))
-        self.rect = Rect(x+10, y+20, 10, 10)
+        self.rect = Rect(x+10+self.xvel, y+20, 10, 10)
         self.dmg=dmg
 
     def kill(self):
@@ -585,7 +644,8 @@ image = [image.load('kam.png'),            #0
          image.load('dor_cl.png'),                          #19
          image.load('dor_open.png'),                        #20
          image.load('btn.png'),                              #21
-         image.load('kam.png'),                               #22          
+         image.load('kam.png'),                               #22  
+         image.load('ship.png'),                               #23        
          ]
 class backgrn(sprite.Sprite):
     def __init__(self,x,y,width,hight,img_nam):
@@ -717,9 +777,28 @@ class Block(sprite.Sprite):
         
     def collide(self,xvel,yvel,platforms,blocks):
         global btn_prs
+        for t in turels:
+            if sprite.collide_rect(self,t):
+                if xvel>0:
+                    self.rect.right = t.rect.left
+                    self.xvel=0
+
+                if xvel<0:
+                    self.rect.left = t.rect.right
+                    self.xvel=0
+
+
+                if yvel>0:
+                    self.rect.bottom = t.rect.top
+                    self.onGround = True
+                    self.tren=8
+                    self.yvel=0
+                if yvel<0:
+                    self.rect.top = t.rect.bottom 
+                    self.yvel=0
         for p in platforms:
             if sprite.collide_rect(self,p):
-                if p.col==True:
+                if p.col==True and p.img_n!=23:
                     
                     if xvel>0:
                         self.rect.right = p.rect.left
@@ -751,11 +830,11 @@ class Block(sprite.Sprite):
                             btn_prs+=1
                             p.flag=True
                             print(btn_prs)
-                            self.tren=TREN
+                            self.tren=8
                             self.onGround = True
                             self.yvel=0
                         else:
-                            self.tren=TREN
+                            self.tren=8
                             self.onGround = True
                             self.yvel=0
 
