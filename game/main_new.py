@@ -5,8 +5,8 @@ import pygame
 from pygame import *
 from pygame import sprite
 
-WIN_WIDTH=700
-WIN_HIGHT=500
+WIN_WIDTH=650
+WIN_HIGHT=650
 DISPLAY = (WIN_WIDTH,WIN_HIGHT)
 BACKGROUND_COLOR="#004400"
 
@@ -110,7 +110,6 @@ def map_new (a):
     btn_prs=0
     x=y=0
     for row in level[m_c]:
-        print('da')
         for col in row:
             #if col==" ":
             #   pf=Platform(x,y,32,32,False,0)
@@ -233,7 +232,6 @@ def map_new (a):
             x+=32
         y+=32
         x=0
-    print(entities)
     entities.add(hero)
     total_level_width  = len(level[m_c][0])*32 # Высчитываем фактическую ширину уровня
     total_level_height = len(level[m_c])*32   # высоту
@@ -425,7 +423,6 @@ class Player(sprite.Sprite):
             self.yvel+=GRAVITY
         if self.hp<=0:
             map_new(0)
-            print("lox")
             self.yvel=0
             self.xvel=0
         self.onGround=False
@@ -565,7 +562,6 @@ class Turel(sprite.Sprite):
         self.rect = Rect(x, y, 32,32)
         self.hp=64
         self.dir=dir
-        print(dir)
         self.i=0
         self.shot=False
 
@@ -590,7 +586,7 @@ class Turel(sprite.Sprite):
                 a=32
             if self.dir=="left":
                 a=-20
-            bult=Bulet(self.rect.x+a,self.rect.y-13,10,self.dir)
+            bult=Bulet(self.rect.x+a,self.rect.y-13,20,self.dir)
             bulets.append(bult)  
             entities.add(bult)
         self.shot=False 
@@ -887,7 +883,6 @@ class Block(sprite.Sprite):
                         elif p.img_n==21 and p.flag==False:
                             btn_prs+=1
                             p.flag=True
-                            print(btn_prs)
                             self.tren=8
                             self.onGround = True
                             self.yvel=0
